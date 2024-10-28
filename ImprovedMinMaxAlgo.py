@@ -4,7 +4,6 @@
 # and the person with highest risk the first choice 
 ####################################################################
 import funcs
-import newFuncs
 import AllData
 import random
 
