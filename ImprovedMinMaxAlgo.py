@@ -1,11 +1,11 @@
 ####################################################################
-# This is the algorithm that was proposed by Dr. Salimur.
-# it will find the min and max of person's risks, subtract them
-# and the person with highest risk the first choice 
+# This is the Min-Max Algorithm proposed by Dr. Salimur.
+# It prioritizes individuals based on the disparity calculated
+# as the maximum risk minus the minimum risk value.
 ####################################################################
+
 import funcs
 import AllData
-import random
 
 people = AllData.getPeople()
 shelters = AllData.getShelter()
@@ -18,65 +18,80 @@ sheltersCapacity = AllData.getCapacity()
 goodnessOfFitArray = AllData.getWeight()
 weightsDuplicate = AllData.getWeight()
 
-
 final_object = {}
 
-
 def getResults():
+    iteration = 1
 
-    while( len( people ) != 0):
+    print("\n" + "=" * 50)
+    print("Running Algorithm: Min-Max Algorithm")
+    print("=" * 50)
+
+    while len(people) != 0:
+        print("\n    " + "=" * 46)
+        print(f"    Iteration {iteration}: Current Allocation Process")
+        print("    " + "=" * 46)
+
         temp = []
-        # For each person, for example 'A':[5,10,15]
-        # find the min and max in the array and sutract
-        # then save the result in the temp file for that
-        # person so that at the end it looks like
-        # A:10, B:5, C: 25. So C is more vulnerable.
+        print("\n    --- Calculating Disparities (Max - Min Risk) ---")
 
+        # For each person, calculate their risk disparity
         for i in range(len(people)):
             _min = min(goodnessOfFitArray[i])
             _max = max(goodnessOfFitArray[i])
             _subtract = _max - _min
             temp.append(_subtract)
+            print(f"    Person {people[i]}: Risk Array = {goodnessOfFitArray[i]}, "
+                  f"Max = {_max}, Min = {_min}, Disparity = {_subtract}")
 
-        # Find the highest value in the temp object which is the person with highest risk
+        print("\n    --- Disparity Calculations ---")
+        for idx, val in enumerate(temp):
+            print(f"    Person {people[idx]}: Disparity = {val:.2f}")
+
+        # Find the person with the highest disparity
         highestRiskAmongAll = max(temp)
         mostValnerablePersonIndex = temp.index(highestRiskAmongAll)
+        print(f"\n    Person with highest disparity: {people[mostValnerablePersonIndex]}")
 
-        # Find the most vulnerable person best choice that is the highest goodnesssoffit and get that shelter
-        while(True):
-            mostValnerablePersonBestChoice = min( goodnessOfFitArray[ mostValnerablePersonIndex ] )
+        # Assign a shelter to the most vulnerable person
+        while True:
+            mostValnerablePersonBestChoice = min(goodnessOfFitArray[mostValnerablePersonIndex])
             mostValnerablePersonBestChoiceIndex = goodnessOfFitArray[mostValnerablePersonIndex].index(mostValnerablePersonBestChoice)
-            mostValnerablePersonBestChoiceShelter = shelters[ mostValnerablePersonBestChoiceIndex ]
+            mostValnerablePersonBestChoiceShelter = shelters[mostValnerablePersonBestChoiceIndex]
             mostValnerablePersonBestChoiceShelterIndex = shelters.index(mostValnerablePersonBestChoiceShelter)
 
-            if sheltersCapacity[ mostValnerablePersonBestChoiceShelterIndex ]>0:
+            if sheltersCapacity[mostValnerablePersonBestChoiceShelterIndex] > 0:
                 break
             else:
+                print(f"    Shelter {mostValnerablePersonBestChoiceShelter} is full. Removing it from consideration.")
                 del shelters[mostValnerablePersonBestChoiceShelterIndex]
                 del sheltersCapacity[mostValnerablePersonBestChoiceShelterIndex]
                 for i in range(len(goodnessOfFitArray)):
                     del goodnessOfFitArray[i][mostValnerablePersonBestChoiceShelterIndex]
 
+        # Record assignment
+        final_object[people[mostValnerablePersonIndex]] = mostValnerablePersonBestChoiceShelter
+        print(f"    Assigned Person {people[mostValnerablePersonIndex]} to Shelter {mostValnerablePersonBestChoiceShelter}")
 
+        # Reduce the shelter's capacity
+        sheltersCapacity[mostValnerablePersonBestChoiceShelterIndex] -= 1
 
-        #Assign that shelter to that person. we will redece the shelter capacity later
-        final_object[ people[mostValnerablePersonIndex] ] = mostValnerablePersonBestChoiceShelter
-
-        #reduce the capacity
-        sheltersCapacity[ mostValnerablePersonBestChoiceShelterIndex ] = sheltersCapacity[ mostValnerablePersonBestChoiceShelterIndex ] - 1
-
-        # since this person is assigned delete it, also delete athe corresponding goodnessoffit
+        # Remove the assigned person
         del people[mostValnerablePersonIndex]
         del goodnessOfFitArray[mostValnerablePersonIndex]
 
-        #if shelter has no capacity the delete that too and all the coresponsing gooness of fit and capacity
-        if ( sheltersCapacity[ mostValnerablePersonBestChoiceShelterIndex ] == 0 ):
-
+        # Remove shelter if capacity is zero
+        if sheltersCapacity[mostValnerablePersonBestChoiceShelterIndex] == 0:
+            print(f"    Shelter {mostValnerablePersonBestChoiceShelter} is now full. Removing it from the pool.")
             del shelters[mostValnerablePersonBestChoiceShelterIndex]
             del sheltersCapacity[mostValnerablePersonBestChoiceShelterIndex]
             for i in range(len(goodnessOfFitArray)):
                 del goodnessOfFitArray[i][mostValnerablePersonBestChoiceShelterIndex]
-    
-    output = funcs.FinalObjectAnalysis(final_object,weightsDuplicate,peopleDuplicate,sheltersDuplicate)
-    print(output)
-    return final_object
+
+        iteration += 1
+
+    print("\n" + "=" * 50)
+    print("Final Assignment Results")
+    print("=" * 50)
+    output = funcs.FinalObjectAnalysis(final_object, weightsDuplicate, peopleDuplicate, sheltersDuplicate)
+    return final_object, output

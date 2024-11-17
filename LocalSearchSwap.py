@@ -5,21 +5,24 @@ import statistics
 import funcs
 import time
 import AllData
-# import scenarioData
 
 weights = AllData.getWeight()
 people = AllData.getPeople()
 shelters = AllData.getShelter()
 
-start_time = time.time()
-
 def getLocalSearch(final_object):
-    flag = True
+    print("\n" + "=" * 40)
+    print("         LOCAL SEARCH ALGORITHM         ")
+    print("=" * 40)
 
+    start_time = time.time()
+
+    flag = True
+    iteration = 0  # Count iterations
     specialCounter = 0
 
-    while ( flag ):
-
+    while flag:
+        iteration += 1
         flag = False
 
         m = 0
@@ -27,37 +30,45 @@ def getLocalSearch(final_object):
         valuneableName = None
         vulnerableShelter = None
 
+        # Find the person with the maximum assigned weight
         for person in final_object:
             shelter = final_object[person]
             w = weights[people.index(person)][shelters.index(shelter)]
-            if w>m:
-                m=w
+            if w > m:
+                m = w
                 valuneableName = person
                 valuneableIndex = people.index(person)
                 vulnerableShelter = shelter
 
+        # Attempt to swap assignments
         for key in range(len(people)):
-            
             if valuneableIndex != key:
-                
-                SwapWeight = weights[ key ][ shelters.index(final_object[valuneableName]) ]
+                SwapWeight = weights[key][shelters.index(final_object[valuneableName])]
                 _person = people[key]
                 _personShelter = final_object[_person]
                 _shelterIndex = shelters.index(_personShelter)
                 _SwapWeight = weights[valuneableIndex][_shelterIndex]
 
-                if SwapWeight<m and _SwapWeight<m:
-                    specialCounter+=1
-                    # print("******")
-                    # print("COUNTER: "+str(specialCounter)+",\nMaximum assigned weight: "+str(m),"\nswapA: "+str(SwapWeight),"\nswapB: "+str(_SwapWeight) )
-                    # print("******")
+                if SwapWeight < m and _SwapWeight < m:
+                    specialCounter += 1
+                    print(f"\nIteration {iteration}: Swap Found")
+                    print(f"  Counter: {specialCounter}")
+                    print(f"  Max Assigned Weight: {m}")
+                    print(f"  Swap A Weight: {SwapWeight}")
+                    print(f"  Swap B Weight: {_SwapWeight}")
+                    print(f"  Swapping '{valuneableName}' and '{_person}'")
                     final_object[valuneableName] = _personShelter
-                    final_object[ people[key] ] = vulnerableShelter
+                    final_object[_person] = vulnerableShelter
                     flag = True
                     break
-                
-    output = funcs.FinalObjectAnalysisLOCALSEARCH(final_object,weights,people,shelters)
 
-    print(output)
-    # print(final_object)
-    # print("--- %s seconds ---" % (time.time() - start_time))
+    output = funcs.FinalObjectAnalysisLOCALSEARCH(final_object, weights, people, shelters)
+
+    # Print the final results
+    print("\n" + "-" * 40)
+    print(f"FINAL OBJECTIVE RESULTS (After Local Search):\n{output}")
+    print(f"Total Iterations: {iteration}")
+    print(f"Execution Time: {time.time() - start_time:.6f} seconds")
+    print("=" * 40)
+
+    return output
